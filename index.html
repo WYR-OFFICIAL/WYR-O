@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WYR OLYMPICS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --primary: #2563eb; 
+            --accent: #7c3aed; 
+            --bg: #0f172a; 
+            --card: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            overflow-x: hidden; 
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .aura {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 10% 10%, rgba(37, 99, 235, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 90% 90%, rgba(124, 58, 237, 0.15) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .header {
+            position: fixed; top: 0; width: 100%; height: 70px;
+            background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px);
+            display: flex; align-items: center; justify-content: center; z-index: 1000;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .header h2 { font-family: 'Space Grotesk'; font-size: 1.1rem; letter-spacing: 2px; font-weight: 700; color: #fff; }
+
+        .footer {
+            position: fixed; bottom: 0; width: 100%; height: 80px;
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(12px);
+            display: flex; align-items: center; justify-content: space-around; z-index: 1000;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .container { width: 90%; max-width: 440px; margin: 90px auto 100px; }
+        
+        .page { display: none; animation: fadeIn 0.4s ease-out; }
+        .active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { 
+            background: var(--card); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px; padding: 24px; margin-bottom: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+        }
+
+        h1 { font-family: 'Space Grotesk'; font-weight: 700; font-size: 1.7rem; margin-bottom: 24px; text-align: center; }
+
+        .btn-primary { 
+            width: 100%; padding: 18px; border: none; border-radius: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white; font-weight: 700; font-size: 1rem; cursor: pointer;
+            transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        input, textarea { 
+            width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px;
+            background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white;
+            font-size: 1rem; outline: none; font-family: inherit;
+        }
+
+        /* FIX: SPACING FOR UPDATES */
+        .update-box { 
+            border-left: 4px solid var(--primary); 
+            padding: 20px; /* More space inside */
+            background: rgba(255,255,255,0.03); 
+            border-radius: 0 16px 16px 0; 
+            margin: 25px 0; /* More space between boxes */
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .update-box p { margin-bottom: 8px; font-size: 0.95rem; }
+        .update-box small { color: #94a3b8; font-weight: 600; font-size: 0.7rem; display: block; }
+
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: rgba(255,255,255,0.03); border-radius: 16px; margin-bottom: 10px; }
+        .chip { padding: 8px 16px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: none; background: rgba(255,255,255,0.1); color: #aaa; }
+        .chip-joined { background: var(--primary); color: white; }
+
+        .rank-card { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: rgba(255,255,255,0.03); border-radius: 18px; margin-bottom: 10px; }
+        .rank-badge { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; background: rgba(255,255,255,0.1); }
+
+        details { background: rgba(255,255,255,0.02); border-radius: 16px; padding: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
+    </style>
+</head>
+<body>
+
+    <div class="aura"></div>
+    <div class="header"><h2>WYR OLYMPICS</h2></div>
+
+    <div class="container">
+        <div id="loginPage" class="page">
+            <h1>Welcome</h1>
+            <div class="card">
+                <input type="text" id="realName" placeholder="Enter Full Name">
+                <input type="text" id="nickName" placeholder="Enter Nickname">
+                <button class="btn-primary" onclick="registerUser()">Start Journey</button>
+            </div>
+        </div>
+
+        <div id="homePage" class="page">
+            <h1>Command Hub</h1>
+            <div class="card" style="text-align: center;">
+                <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px;">Ready to compete in the Olympics?</p>
+                <button class="btn-primary" onclick="showPage('registerEventPage')">Register for Events</button>
+            </div>
+            
+            <div class="nav-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 15px;">
+                <button style="padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; font-size: 0.7rem; font-weight: bold;" onclick="showPage('infoPage')">INFO</button>
+                <button style="padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; font-size: 0.7rem; font-weight: bold;" onclick="showPage('leaderboardPage')">RANK</button>
+                <button style="padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; font-size: 0.7rem; font-weight: bold;" onclick="showPage('participantsPage')">LIST</button>
+            </div>
+        </div>
+
+        <div id="infoPage" class="page">
+            <p onclick="showPage('homePage')" style="color:#94a3b8; cursor:pointer; margin-bottom:15px; font-size:0.8rem; font-weight:600;">← Back to Hub</p>
+            <h1>Event Info</h1>
+            <div class="card">
+                <h3 style="font-size: 0.8rem; text-transform: uppercase; color: var(--primary); margin-bottom: 15px;">Live Updates</h3>
+                <div id="liveUpdates"></div>
+                
+                <div id="adminPanel" style="display:none; margin-top:20px; border-top:1px solid rgba(255,255,255,0.1); padding-top:20px;">
+                    <p style="font-size: 0.7rem; margin-bottom: 5px; color: var(--accent);">Tip: Use **bold** and _italic_</p>
+                    <textarea id="adminMsg" placeholder="Type announcement..." style="height:120px; resize:none;"></textarea>
+                    <button class="btn-primary" style="padding:12px; font-size:0.8rem;" onclick="postUpdate()">Post Update 🚀</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="leaderboardPage" class="page">
+            <p onclick="showPage('homePage')" style="color:#94a3b8; cursor:pointer; margin-bottom:15px; font-size:0.8rem; font-weight:600;">← Back</p>
+            <h1>Rankings</h1>
+            <div id="leaderboardBody"></div>
+        </div>
+
+        <div id="participantsPage" class="page">
+            <p onclick="showPage('homePage')" style="color:#94a3b8; cursor:pointer; margin-bottom:15px; font-size:0.8rem; font-weight:600;">← Back</p>
+            <h1>Player List</h1>
+            <div id="participantContent"></div>
+        </div>
+
+        <div id="registerEventPage" class="page">
+            <p onclick="showPage('homePage')" style="color:#94a3b8; cursor:pointer; margin-bottom:15px; font-size:0.8rem; font-weight:600;">← Back</p>
+            <h1 id="displayId" style="font-size: 1.1rem; text-align: left;">ID: #000</h1>
+            <div id="eventList"></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div style="text-align: left;">
+            <p style="font-size: 0.6rem; text-transform: uppercase; color: #64748b;">Current User</p>
+            <p id="footerUser" style="font-weight: 700; font-size: 0.9rem;">GUEST</p>
+        </div>
+        <div id="footerID" style="background: var(--primary); padding: 6px 14px; border-radius: 10px; font-weight: 800; font-size: 0.8rem;">#000</div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, updateDoc, collection, onSnapshot, query, orderBy, getDocs, addDoc, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCz9cM7bUCAJnW2cr0qIZxaS60mWgRVAyM",
+        authDomain: "wyr-olympics.firebaseapp.com",
+        projectId: "wyr-olympics",
+        storageBucket: "wyr-olympics.firebasestorage.app",
+        messagingSenderId: "5860419843",
+        appId: "1:5860419843:web:45f65b48d42c36850ae136"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    let currentUser = JSON.parse(localStorage.getItem('wyr_user')) || null;
+
+    const EVENT_NAMES = ["Gaming Clash", "Speed Logic", "Mystery Task", "Skill Shot", "Final Showdown"];
+
+    // --- TIME AGO FUNCTION ---
+    function timeAgo(date) {
+        if (!date) return "Just now";
+        const seconds = Math.floor((new Date() - date.toDate()) / 1000);
+        let interval = Math.floor(seconds / 31536000);
+        if (interval >= 1) return interval + "y ago";
+        interval = Math.floor(seconds / 2592000);
+        if (interval >= 1) return interval + "mo ago";
+        interval = Math.floor(seconds / 86400);
+        if (interval >= 1) return interval + "d ago";
+        interval = Math.floor(seconds / 3600);
+        if (interval >= 1) return interval + "h ago";
+        interval = Math.floor(seconds / 60);
+        if (interval >= 1) return interval + "m ago";
+        return "Just now";
+    }
+
+    // --- TEXT FORMATTING FUNCTION ---
+    function formatMessage(text) {
+        // Simple Bold (**text**)
+        text = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        // Simple Italic (_text_)
+        text = text.replace(/_(.*?)_/g, '<i>$1</i>');
+        return text;
+    }
+
+    window.showPage = (id) => {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        const target = document.getElementById(id);
+        if(target) target.classList.add('active');
+        
+        if(id === 'participantsPage') loadParticipants();
+        if(id === 'leaderboardPage') loadLeaderboard();
+        if(id === 'infoPage') loadUpdates();
+        
+        if(currentUser && currentUser.nickName.toLowerCase() === "sagegod") {
+            const panel = document.getElementById('adminPanel');
+            if(panel) panel.style.display = 'block';
+        }
+        window.scrollTo(0,0);
+    };
+
+    if (currentUser) { showPage('homePage'); updateUI(); } else { showPage('loginPage'); }
+
+    window.registerUser = async () => {
+        const rName = document.getElementById('realName').value.trim();
+        const nName = document.getElementById('nickName').value.trim();
+        if(!rName || !nName) return alert("Please fill in both names!");
+
+        const q = query(collection(db, "players"), where("nickName", "==", nName));
+        const snap = await getDocs(q);
+        if (!snap.empty) return alert("Nickname already taken!");
+
+        if(nName.toLowerCase() === "sagegod") {
+            const p = prompt("Enter Admin Password:");
+            if(p !== "YOUR_PASSWORD") return alert("Wrong Password!");
+        }
+
+        const all = await getDocs(collection(db, "players"));
+        const id = (all.size + 1).toString().padStart(3, '0'); 
+        const user = { realName: rName, nickName: nName, id: id, points: 0, events: {e0:false, e1:false, e2:false, e3:false, e4:false} };
+        await setDoc(doc(db, "players", id), user);
+        localStorage.setItem('wyr_user', JSON.stringify(user));
+        currentUser = user;
+        showPage('homePage'); updateUI();
+    };
+
+    function updateUI() {
+        if(!currentUser) return;
+        document.getElementById('footerUser').innerText = currentUser.nickName;
+        document.getElementById('footerID').innerText = "#" + currentUser.id;
+        if(document.getElementById('displayId')) document.getElementById('displayId').innerText = "Player: #" + currentUser.id;
+        renderEvents();
+    }
+
+    function renderEvents() {
+        const list = document.getElementById('eventList');
+        if(!list) return; list.innerHTML = '';
+        EVENT_NAMES.forEach((name, i) => {
+            const isPart = currentUser.events['e'+i];
+            list.innerHTML += `<div class="list-item">
+                <span style="font-weight:600;">${name}</span>
+                <button onclick="toggleEvent(${i})" class="chip ${isPart ? 'chip-joined' : ''}">
+                    ${isPart ? 'JOINED' : 'JOIN'}
+                </button>
+            </div>`;
+        });
+    }
+
+    window.toggleEvent = async (num) => {
+        const key = 'e' + num; const status = !currentUser.events[key];
+        currentUser.points += status ? 1 : -1; currentUser.events[key] = status;
+        await updateDoc(doc(db, "players", currentUser.id), { points: currentUser.points, [`events.${key}`]: status });
+        localStorage.setItem('wyr_user', JSON.stringify(currentUser)); renderEvents();
+    };
+
+    function loadUpdates() {
+        onSnapshot(query(collection(db, "updates"), orderBy("time", "desc")), (snap) => {
+            const div = document.getElementById('liveUpdates'); div.innerHTML = '';
+            snap.forEach(d => {
+                const data = d.data();
+                div.innerHTML += `<div class="update-box">
+                    <p>${formatMessage(data.msg)}</p>
+                    <small>${timeAgo(data.time)}</small>
+                </div>`;
+            });
+        });
+    }
+
+    window.postUpdate = async () => {
+        const el = document.getElementById('adminMsg');
+        const msg = el.value.trim(); if(!msg) return;
+        await addDoc(collection(db, "updates"), { msg: msg, time: serverTimestamp() });
+        el.value = '';
+    };
+
+    function loadParticipants() {
+        onSnapshot(collection(db, "players"), (snap) => {
+            let html = ''; const players = snap.docs.map(d => d.data());
+            EVENT_NAMES.forEach((name, i) => {
+                const joined = players.filter(p => p.events['e'+i]);
+                html += `<details><summary>${name} (${joined.length})</summary>
+                    <div style="padding-top:10px;">
+                    ${joined.length > 0 ? joined.map(p => `<div style="padding:8px; font-size:0.85rem; border-bottom:1px solid rgba(255,255,255,0.05);">${p.nickName} <small style="opacity:0.4;">#${p.id}</small></div>`).join('') : '<p style="font-size:0.8rem; opacity:0.5;">Empty</p>'}
+                    </div></details>`;
+            });
+            document.getElementById('participantContent').innerHTML = html;
+        });
+    }
+
+    function loadLeaderboard() {
+        onSnapshot(query(collection(db, "players"), orderBy("points", "desc")), (snap) => {
+            let html = ''; let r = 1;
+            snap.forEach(doc => {
+                const p = doc.data();
+                html += `<div class="rank-card">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div class="rank-badge" style="${r<=3 ? 'background:var(--primary);' : ''}">${r}</div>
+                        <span style="font-weight:600;">${p.nickName}</span>
+                    </div>
+                    <span style="font-weight:700; color:var(--primary);">${p.points} <small>PTS</small></span>
+                </div>`;
+                r++;
+            });
+            document.getElementById('leaderboardBody').innerHTML = html;
+        });
+    }
+</script>
+</body>
+</html>
