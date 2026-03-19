@@ -74,13 +74,12 @@
             font-size: 1rem; outline: none; font-family: inherit;
         }
 
-        /* FIX: SPACING FOR UPDATES */
         .update-box { 
             border-left: 4px solid var(--primary); 
-            padding: 20px; /* More space inside */
+            padding: 20px; 
             background: rgba(255,255,255,0.03); 
             border-radius: 0 16px 16px 0; 
-            margin: 25px 0; /* More space between boxes */
+            margin: 30px 0; 
             white-space: pre-wrap;
             word-wrap: break-word;
         }
@@ -125,6 +124,7 @@
                 <button style="padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; font-size: 0.7rem; font-weight: bold;" onclick="showPage('leaderboardPage')">RANK</button>
                 <button style="padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; font-size: 0.7rem; font-weight: bold;" onclick="showPage('participantsPage')">LIST</button>
             </div>
+            <p onclick="logoutUser()" style="text-align:center; margin-top:30px; font-size:0.7rem; color:#ef4444; opacity:0.5; cursor:pointer;">Logout / Reset Session</p>
         </div>
 
         <div id="infoPage" class="page">
@@ -171,7 +171,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, updateDoc, collection, onSnapshot, query, orderBy, getDocs, addDoc, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot, query, orderBy, getDocs, addDoc, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCz9cM7bUCAJnW2cr0qIZxaS60mWgRVAyM",
@@ -188,7 +188,28 @@
 
     const EVENT_NAMES = ["Gaming Clash", "Speed Logic", "Mystery Task", "Skill Shot", "Final Showdown"];
 
-    // --- TIME AGO FUNCTION ---
+    // --- NUCLEAR RESET CHECK ---
+    async function validateGhostUser() {
+        if (currentUser && currentUser.id) {
+            const userRef = doc(db, "players", currentUser.id);
+            const userSnap = await getDoc(userRef);
+            
+            // If phone thinks user exists but database doesn't -> WIPE PHONE
+            if (!userSnap.exists()) {
+                console.warn("Ghost User Detected. Resetting...");
+                localStorage.removeItem('wyr_user');
+                currentUser = null;
+                window.location.reload(); 
+            }
+        }
+    }
+    validateGhostUser();
+
+    window.logoutUser = () => {
+        localStorage.removeItem('wyr_user');
+        window.location.reload();
+    };
+
     function timeAgo(date) {
         if (!date) return "Just now";
         const seconds = Math.floor((new Date() - date.toDate()) / 1000);
@@ -205,11 +226,8 @@
         return "Just now";
     }
 
-    // --- TEXT FORMATTING FUNCTION ---
     function formatMessage(text) {
-        // Simple Bold (**text**)
         text = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-        // Simple Italic (_text_)
         text = text.replace(/_(.*?)_/g, '<i>$1</i>');
         return text;
     }
