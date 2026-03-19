@@ -88,8 +88,8 @@
         .update-box small { color: #94a3b8; font-weight: 600; font-size: 0.7rem; display: block; }
 
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: rgba(255,255,255,0.03); border-radius: 16px; margin-bottom: 10px; }
-        .chip { padding: 8px 16px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: none; background: rgba(255,255,255,0.1); color: #aaa; }
-        .chip-joined { background: var(--primary); color: white; }
+        .chip { padding: 8px 16px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: none; background: rgba(255,255,255,0.1); color: #aaa; transition: 0.3s; }
+        .chip-joined { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); }
 
         .rank-card { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: rgba(255,255,255,0.03); border-radius: 18px; margin-bottom: 10px; }
         .rank-badge { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; background: rgba(255,255,255,0.1); }
@@ -124,7 +124,10 @@
                 <button style="padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; font-size: 0.7rem; font-weight: bold;" onclick="showPage('leaderboardPage')">RANK</button>
                 <button style="padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 10px; font-size: 0.7rem; font-weight: bold;" onclick="showPage('participantsPage')">LIST</button>
             </div>
-            <p onclick="logoutUser()" style="text-align:center; margin-top:30px; font-size:0.7rem; color:#ef4444; opacity:0.5; cursor:pointer;">Logout / Reset Session</p>
+            
+            <div id="adminLogout" style="display:none; text-align:center; margin-top:40px;">
+                 <p onclick="logoutUser()" style="font-size:0.7rem; color:#ef4444; opacity:0.6; cursor:pointer; text-decoration: underline;">Admin Logout / Force Reset</p>
+            </div>
         </div>
 
         <div id="infoPage" class="page">
@@ -188,15 +191,12 @@
 
     const EVENT_NAMES = ["Gaming Clash", "Speed Logic", "Mystery Task", "Skill Shot", "Final Showdown"];
 
-    // --- NUCLEAR RESET CHECK ---
+    // Ghost user check
     async function validateGhostUser() {
         if (currentUser && currentUser.id) {
             const userRef = doc(db, "players", currentUser.id);
             const userSnap = await getDoc(userRef);
-            
-            // If phone thinks user exists but database doesn't -> WIPE PHONE
             if (!userSnap.exists()) {
-                console.warn("Ghost User Detected. Resetting...");
                 localStorage.removeItem('wyr_user');
                 currentUser = null;
                 window.location.reload(); 
@@ -213,17 +213,13 @@
     function timeAgo(date) {
         if (!date) return "Just now";
         const seconds = Math.floor((new Date() - date.toDate()) / 1000);
-        let interval = Math.floor(seconds / 31536000);
-        if (interval >= 1) return interval + "y ago";
-        interval = Math.floor(seconds / 2592000);
-        if (interval >= 1) return interval + "mo ago";
-        interval = Math.floor(seconds / 86400);
-        if (interval >= 1) return interval + "d ago";
-        interval = Math.floor(seconds / 3600);
-        if (interval >= 1) return interval + "h ago";
-        interval = Math.floor(seconds / 60);
-        if (interval >= 1) return interval + "m ago";
-        return "Just now";
+        let interval = Math.floor(seconds / 60);
+        if (interval < 1) return "Just now";
+        if (interval < 60) return interval + "m ago";
+        interval = Math.floor(interval / 60);
+        if (interval < 24) return interval + "h ago";
+        interval = Math.floor(interval / 24);
+        return interval + "d ago";
     }
 
     function formatMessage(text) {
@@ -241,9 +237,12 @@
         if(id === 'leaderboardPage') loadLeaderboard();
         if(id === 'infoPage') loadUpdates();
         
+        // ADMIN PANEL & LOGOUT VISIBILITY
         if(currentUser && currentUser.nickName.toLowerCase() === "sagegod") {
             const panel = document.getElementById('adminPanel');
+            const logout = document.getElementById('adminLogout');
             if(panel) panel.style.display = 'block';
+            if(logout) logout.style.display = 'block';
         }
         window.scrollTo(0,0);
     };
@@ -288,18 +287,36 @@
             const isPart = currentUser.events['e'+i];
             list.innerHTML += `<div class="list-item">
                 <span style="font-weight:600;">${name}</span>
-                <button onclick="toggleEvent(${i})" class="chip ${isPart ? 'chip-joined' : ''}">
+                <button id="btn-ev-${i}" onclick="toggleEvent(${i})" class="chip ${isPart ? 'chip-joined' : ''}">
                     ${isPart ? 'JOINED' : 'JOIN'}
                 </button>
             </div>`;
         });
     }
 
+    // --- FIXED TOGGLE LOGIC ---
     window.toggleEvent = async (num) => {
-        const key = 'e' + num; const status = !currentUser.events[key];
-        currentUser.points += status ? 1 : -1; currentUser.events[key] = status;
-        await updateDoc(doc(db, "players", currentUser.id), { points: currentUser.points, [`events.${key}`]: status });
-        localStorage.setItem('wyr_user', JSON.stringify(currentUser)); renderEvents();
+        const key = 'e' + num;
+        const currentlyJoined = currentUser.events[key];
+        
+        // Flip the status
+        const newStatus = !currentlyJoined;
+        
+        // Update points: +1 if joining, -1 if leaving
+        currentUser.points += newStatus ? 1 : -1;
+        currentUser.events[key] = newStatus;
+
+        // Save to Firebase
+        await updateDoc(doc(db, "players", currentUser.id), { 
+            points: currentUser.points, 
+            [`events.${key}`]: newStatus 
+        });
+
+        // Save to Phone Memory
+        localStorage.setItem('wyr_user', JSON.stringify(currentUser));
+        
+        // Refresh UI
+        renderEvents();
     };
 
     function loadUpdates() {
