@@ -175,6 +175,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot, query, orderBy, getDocs, addDoc, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCz9cM7bUCAJnW2cr0qIZxaS60mWgRVAyM",
@@ -187,9 +188,28 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    let currentUser = JSON.parse(localStorage.getItem('wyr_user')) || null;
+    const messaging = getMessaging(app);
 
+    let currentUser = JSON.parse(localStorage.getItem('wyr_user')) || null;
     const EVENT_NAMES = ["Free Fire", "MC Parkour", "Rapid Fire", "Chess", "Mystery Task"];
+
+    // Push Notification Logic
+    async function setupNotifications(userId) {
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                const token = await getToken(messaging, { 
+                    vapidKey: 'BLPz0bKmFHtmZRBR0dy4ahEGG_1Hm-edYOapHtObwu0OSu8nvrjh2joSTE_LgXT5u9f0iPwBs7EIK2i7Noy2LCQ' 
+                });
+                if (token) {
+                    await updateDoc(doc(db, "players", userId), { fcmToken: token });
+                    console.log("Push notifications active! ✅");
+                }
+            }
+        } catch (error) {
+            console.log("Notification setup failed or blocked.");
+        }
+    }
 
     // Ghost user check
     async function validateGhostUser() {
@@ -200,6 +220,8 @@
                 localStorage.removeItem('wyr_user');
                 currentUser = null;
                 window.location.reload(); 
+            } else {
+                setupNotifications(currentUser.id);
             }
         }
     }
@@ -237,7 +259,6 @@
         if(id === 'leaderboardPage') loadLeaderboard();
         if(id === 'infoPage') loadUpdates();
         
-        // ADMIN PANEL & LOGOUT VISIBILITY
         if(currentUser && currentUser.nickName.toLowerCase() === "sagegod") {
             const panel = document.getElementById('adminPanel');
             const logout = document.getElementById('adminLogout');
@@ -269,6 +290,8 @@
         await setDoc(doc(db, "players", id), user);
         localStorage.setItem('wyr_user', JSON.stringify(user));
         currentUser = user;
+        
+        setupNotifications(id);
         showPage('homePage'); updateUI();
     };
 
@@ -294,28 +317,20 @@
         });
     }
 
-    // --- FIXED TOGGLE LOGIC ---
     window.toggleEvent = async (num) => {
         const key = 'e' + num;
         const currentlyJoined = currentUser.events[key];
-        
-        // Flip the status
         const newStatus = !currentlyJoined;
         
-        // Update points: +1 if joining, -1 if leaving
         currentUser.points += newStatus ? 1 : -1;
         currentUser.events[key] = newStatus;
 
-        // Save to Firebase
         await updateDoc(doc(db, "players", currentUser.id), { 
             points: currentUser.points, 
             [`events.${key}`]: newStatus 
         });
 
-        // Save to Phone Memory
         localStorage.setItem('wyr_user', JSON.stringify(currentUser));
-        
-        // Refresh UI
         renderEvents();
     };
 
