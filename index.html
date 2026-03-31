@@ -207,7 +207,8 @@
                 }
             }
         } catch (error) {
-            console.log("Notification setup failed or blocked.");
+    alert("Error Detail: " + error.message);
+    console.log(error);
         }
     }
 
