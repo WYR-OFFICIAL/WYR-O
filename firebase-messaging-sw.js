@@ -1,5 +1,5 @@
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-bootstrap.js');
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-sw.js');
+importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
     apiKey: "AIzaSyCz9cM7bUCAJnW2cr0qIZxaS60mWgRVAyM",
@@ -10,13 +10,13 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Background listener
+// This allows the notification to show when the app is in the background
 messaging.onBackgroundMessage((payload) => {
   console.log('Received background message ', payload);
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
-    icon: '/icon.png' // Add an icon path here if you have one
+    icon: 'https://wyr-official.github.io/icon.png' // Use absolute URL for the icon
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
